@@ -1,6 +1,6 @@
 require("express-async-errors");
 
-const database = require("./database/sqlite");
+const migrationsRun = require("./database/sqlite/migrations");
 
 const AppError = require("./utils/AppError");
 
@@ -9,14 +9,14 @@ const express = require("express");
 const routes  = require("./routes");
 const { response } = require("express");
 
+migrationsRun();
+
 const app = express();
 app.use(express.json());
 
 app.use(routes);
 
-database();
-
-app.use(( error, request, next ) => {
+app.use(( error, request, response, next ) => {
     if(error instanceof AppError) {
         return response.status(error.statusCode).json({
             status: "error",
@@ -31,6 +31,7 @@ app.use(( error, request, next ) => {
         message: "internal server error"
 
     });
+    next();
 
 });
 
